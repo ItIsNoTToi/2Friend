@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+</head>
+<body>
+    <h1>Friends List</h1>
+    <% if (friends.length > 0) { %> <!-- Kiểm tra nếu có bạn bè để hiển thị danh sách -->
+        <ul>
+            <% friends.forEach(friend => { %>
+                <li>
+                    <!-- Hiển thị username, email và trạng thái yêu cầu kết bạn -->
+                    RequestId: <%= friend._id %> - 
+                    Friend: <%= friend.friend.username %> (Email: <%= friend.friend.email %>) - 
+                    Status: <%= friend.status %>
+                </li>
+                <!-- Form để chấp nhận yêu cầu kết bạn nếu trạng thái là 'pending' và người nhận là người đang đăng nhập -->
+                <% if (friend.status === 'pending' && friend.friend._id.toString() === loggedInUserId.toString()) { %>
+                    <form action="/friend/acceptfriend" method="POST" class="accept-friend-form" data-request-id="<%= friend._id %>" style="display:inline;">
+                        <input type="hidden" name="requestId" value="<%= friend._id %>">
+                        <button type="submit">Accept</button>
+                    </form>
+                <% } %>
+            <% }); %>
+        </ul>
+    <% } else { %> <!-- Nếu không có bạn bè, hiển thị thông báo -->
+        <p>No friend requests.</p>
+    <% } %>
+    <script>
+        // Xử lý gửi form chấp nhận yêu cầu kết bạn
+        document.querySelectorAll('.accept-friend-form').forEach(form => {
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault(); // Ngăn việc gửi form theo cách truyền thống
+                
+                const formData = new FormData(form);
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    body: formData
+                });
+
+                const result = await response.json();
+                alert(result.message); // Hiển thị thông báo từ phản hồi JSON
+
+                if (response.ok) {
+                    window.location.reload(); // Tải lại trang để cập nhật danh sách
+                }
+            });
+        });
+    </script>
+</body>
+</html>

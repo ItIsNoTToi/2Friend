@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= username %>'s Profile</title>
+    <link rel="stylesheet" href="/stylesheets/profile.css">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/profile">Profile</a></li>
+                <li><a href="/messages">Messages</a></li>
+                <li>
+                    <form action="/logout" method="get">
+                        <button type="submit" class="logout-btn">Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="profile-header">
+            <div class="profile-img">
+                <img id="background" src="/images/background.jpg" alt="Background" />
+                <img id="icon" src="/images/icon.jpg" alt="Profile Icon" />
+                <div id="change-img" class="btn-change-img">Change Image</div>
+            </div>
+            <h1 class="username"><%= username %></h1>
+            <p class="bio">This is a short bio about the user. It can include interests, hobbies, or a brief introduction.</p>
+        </section>
+
+        <section class="user-posts">
+            <h2>Posts</h2>
+            <div id="posts-container"></div>
+            <p class="no-posts" style="display: none;">No posts found.</p>
+        </section>
+
+        <section class="user-list">
+            <h2>Users</h2>
+            <div id="user-list"></div>
+            <p class="no-users" style="display: none;">No users found.</p>
+        </section>
+
+        <a href="/" class="back-link">Back to Index</a>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Fetch user data
+            $.ajax({
+                url: '/api/users',
+                method: 'GET',
+                success: function(response) {
+                    let userList = $('#user-list');
+                    userList.empty();
+                    if (response.length > 0) {
+                        response.forEach(user => {
+                            userList.append('<p>User ID: ' + user.id + ', Name: ' + user.name + '</p>');
+                        });
+                    } else {
+                        $('.no-users').show();
+                    }
+                },
+                error: function(err) {
+                    console.error('Error fetching users:', err);
+                }
+            });
+
+            // Fetch posts data
+            async function fetchPosts() {
+                try {
+                    const response = await fetch('/post');
+                    const data = await response.json();
+                    const postsContainer = document.getElementById('posts-container');
+                    postsContainer.innerHTML = '';
+                    if (data.post && data.post.length > 0) {
+                        data.post.forEach(post => {
+                            const postElement = document.createElement('div');
+                            postElement.classList.add('post');
+                            postElement.innerHTML = `
+                                <h3>Author: ${post.Author}</h3>
+                                <p>${post.content}</p>
+                                ${post.IsCommunityPost ? `<p><strong>Community Post:</strong> ${post.Community}</p>` : ''}
+                            `;
+                            postsContainer.appendChild(postElement);
+                        });
+                    } else {
+                        $('.no-posts').show();
+                    }
+                } catch (error) {
+                    console.error('Error fetching posts:', error);
+                }
+            }
+
+            fetchPosts();
+        });
+    </script>
+</body>
+</html>

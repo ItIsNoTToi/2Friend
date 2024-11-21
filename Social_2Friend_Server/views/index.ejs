@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2 FRIEND</title>
+    <link rel="stylesheet" href="/stylesheets/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">2 FRIEND</div>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/profile">Profile</a></li>
+                <li><a href="/messages">Messages</a></li>
+                <li>
+                    <form action="/logout" method="get">
+                        <button type="submit" class="logout-btn">Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="new-post">
+            <h2>Create New Post</h2>
+            <form id="new-post-form" enctype="multipart/form-data">
+                <textarea id="content" name="content" placeholder="What's on your mind?" required></textarea>
+                <div class="media-upload">
+                    <input type="file" name="image" accept="image/*">
+                    <input type="file" name="video" accept="video/*">
+                </div>
+                <button type="submit">Post</button>
+            </form>
+        </section>
+
+        <section class="posts">
+            <h2>Recent Posts</h2>
+            <!-- Posts will be dynamically injected here -->
+        </section>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        async function fetchPosts() {
+            try {
+                const response = await fetch('/post/randompost'); // API endpoint
+                const data = await response.json();
+                const postsContainer = document.querySelector('.posts');
+                postsContainer.innerHTML = '';
+                if (data.post && data.post.length > 0) {
+                    data.post.forEach(post => {
+                        postsContainer.innerHTML += `
+                            <div class="post">
+                                <h3>${post.Author}</h3>
+                                <p>${post.content}</p>
+                                ${post.IsCommunityPost ? `<p><strong>Community Post:</strong> ${post.Community}</p>` : ''}
+                            </div>
+                        `;
+                    });
+                } else {
+                    postsContainer.innerHTML = `<p>No posts available.</p>`;
+                }
+            } catch (error) {
+                console.error('Error fetching posts:', error);
+            }
+        }
+
+        window.onload = fetchPosts;
+
+        document.getElementById('new-post-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this); // Using FormData to send image and video files
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
+
+            try {
+                const response = await fetch("/post", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert(`Success: ${data.message}`);
+                    fetchPosts(); // Refresh the posts
+                } else {
+                    alert(`Error:1: ${data.message}`);
+                }
+            } catch (error) {
+                alert('Error: Unable to push post.');
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

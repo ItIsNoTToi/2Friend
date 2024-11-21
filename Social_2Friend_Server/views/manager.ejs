@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+</head>
+<body>
+    <header>
+        <h1>Manager Server</h1>
+    </header>
+    <main>
+        <div>
+            <h2>User Management</h2>
+            <form action="/user" method="post"> <!-- Form cho việc thêm mới người dùng -->
+                <nav style="display: block;">
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <label for="username">Username:</label>
+                        <input type="text" name="username" id="username" placeholder="Username" required />
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <label for="email">Email:</label>
+                        <input type="email" name="email" id="email" placeholder="Email" required />
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <label for="phone">Phone:</label>
+                        <input type="text" name="phone" id="phone" placeholder="Phone" required />
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <label for="password">Password:</label>
+                        <input type="password" name="password" id="password" placeholder="Password" required />
+                    </div>
+                </nav>
+                <br/>
+                <div class="buttons">
+                    <button type="submit" id="add-user">Create User</button>
+                </div>
+            </form>
+            <br/>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Created At</th>
+                        <th>Password</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% users.forEach(function(user) { %>
+                    <tr>
+                        <td><%= user._id %></td>
+                        <td><%= user.username %></td>
+                        <td><%= user.email %></td>
+                        <td>
+                            <!-- Select để cập nhật role -->
+                            <form action="/user/update-user/<%= user._id %>" method="POST" style="display:inline;">
+                                <select name="role" onchange="this.form.submit()">
+                                    <option value="user" <%= user.role === 'user' ? 'selected' : '' %>>User</option>
+                                    <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td><%= new Date(user.createdAt).toLocaleDateString('en-GB') %></td>
+                        <td><%= user.password %></td>
+                        <td>
+                            <!-- Xóa người dùng -->
+                            <form action="/user/delete-user/<%= user._id %>" method="POST" style="display:inline;">
+                                <button type="submit">Delete</button>
+                            </form>
+                        </td>
+                        <td>
+                            <!-- Tình trạng kết bạn -->
+                            <% if (user._id != loggedInUserId) { %>
+                                <!-- Nếu chưa kết bạn, hiển thị nút thêm bạn -->
+                                <form action="/friend/addfriend" method="POST" class="add-friend-form" style="display:inline;">
+                                    <input type="hidden" name="senderId" value="<%= loggedInUserId %>">
+                                    <input type="hidden" name="receiverId" value="<%= user._id %>">
+                                    <button type="submit">Add Friend</button>
+                                </form>
+                            <% } else { %>
+                                <p>YOUR ACCOUNT</p>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </main>
+    <footer>
+        <a href="/">index</a>
+        <a href="/profile">Profile</a>
+        <a href="/logout">Log out</a>
+    </footer>
+</body>
+</html>
